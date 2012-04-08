@@ -1,0 +1,111 @@
+SET PC, boot
+SET J, 0x0020
+;ok some important variables
+SET [0x5ffa], 0 ;did we print a command?
+:unknownc    dat " Unknown Command", 0
+:intro       dat " Loading Env v 0.1.1", 0
+:hardware    dat " Hardware probing and initialization will go here", 0
+:typehelp    dat " Type 'help' for a list of commands", 0
+:helpout        dat " Current commands are: help, reset", 0
+:prompt      dat ">", 0
+:boot        SET b, intro
+             JSR printdat
+             JSR newline
+             SET b, hardware
+             JSR printdat
+             JSR newline
+             SET b, typehelp
+             JSR printdat
+             JSR newline
+             SET b, prompt
+             JSR printdat
+             set I, 0x0020
+             JSR append
+             set PC, main
+
+:printdat
+	     set a, [b]
+             ife a, 0
+             set PC, POP
+	     bor a, 0xf100
+	     set [0x8000+j], a
+	     add b, 1
+	     add j, 1
+	     set PC, printdat
+:append      bor I, 0xf100
+             SET [0x8000+j], I
+             ADD J, 1
+             ADD Z, 1
+             SET Pc, POP
+:main        ife [0x9000], 0     ; if the user hasn't typed anything in yet
+             set PC, main        ;continue waiting
+             ife [0x9000], 0xA   ;the user hit enter, proccess the command!
+             JSR command
+             ife [0x9000], 0x8   ;the user hit the delete key
+             SET PC, delete
+             SET I, [0x9000]
+             SET [0x9000], 0
+             IFN I, 0
+             jsr append
+             SET PC, main
+
+:delete      SUB J, 1
+             SUB Z, 1
+             SET [0x8000 + j], 0x0000
+             SET [0x9000], 0
+             SET PC, main
+
+:newline
+  	     set i, J
+ 	     mod i, 32
+	     set z, 32
+ 	     sub z, i
+ 	     add J, z
+ 	     set pc, pop
+
+:command     SET [0x5FFA], 0
+             JSR newline
+             SET Y, 0x8000
+             ADD Y, J
+             SUB Y, 0x001E
+             ife [Y], 0xF168
+             JSR help
+             ife [y], 0xF172
+             JSR reset
+             ife [0x5FFA], 0
+             JSR unknown
+             set Z, 0x0000
+             SET Y, 0x0000
+             SET PC, POP
+
+:reset       SET J, 0
+             JSR resettwo
+             set J, 0x0020
+             set b, prompt
+             jsr printdat
+             set [0x5FFA], 1
+             SET PC, pop
+:resettwo    SET [0x8000 + J], 0
+             ADD J, 1
+             SET C, J
+             ADD C, 0x8000
+             ife C, 0x81FF
+             SET PC, POP
+             SET PC, resettwo
+
+:unknown     SET B, unknownc
+             JSR printdat
+             JSR newline
+             SET B, prompt
+             JSR printdat
+             SET PC, POP
+
+:help        SET b, helpout
+             JSR printdat
+             SET [0x5FFA], 1
+             JSR newline
+             SET b, prompt
+             JSR printdat
+             SET PC, POP
+
+
