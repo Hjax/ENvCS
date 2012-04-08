@@ -5,10 +5,11 @@ SET PC, boot
 SET [0x5ffa], 0 ;did we print a command?
 set [0x7FFF], 0x8000 ;video pointer
 :unknownc    dat " Unknown Command", 0
-:intro       dat " Loading Env v 0.1.1", 0
+:intro       dat " Loading Env v 0.1.2", 0
 :hardware    dat " Hardware probing and initialization will go here", 0
 :typehelp    dat " Type 'help' for a list of commands", 0
-:helpout        dat " Current commands are: help, reset", 0
+:helpout     dat " Current commands are: help, reset, about", 0
+:abouttext   dat "  ENvOS, Written by Hjax, v0.1.2, type 'help' to view a list of commands", 0
 :prompt      dat ">", 0
 :boot        SET b, intro
              JSR printdat
@@ -23,6 +24,7 @@ set [0x7FFF], 0x8000 ;video pointer
              JSR printdat
              set I, 0x0020
              JSR append
+             SET [0x5FFA], 1
              set PC, main
 
 :printdat
@@ -76,6 +78,8 @@ set [0x7FFF], 0x8000 ;video pointer
              JSR help
              ife [y], 0xF172
              JSR reset
+             ife [y], 0xF161
+             set PC, about
              ife [0x5FFA], 0
              JSR unknown
              set Z, 0x0000
@@ -103,7 +107,13 @@ set [0x7FFF], 0x8000 ;video pointer
              SET B, prompt
              JSR printdat
              SET PC, POP
-
+:about       SET B, abouttext
+             JSR printdat
+             JSR newline
+             SET B, prompt
+             JSR printdat
+             SET [0x5FFA], 1
+             set pc, pop
 :help        SET b, helpout
              JSR printdat
              SET [0x5FFA], 1
