@@ -1,9 +1,9 @@
-SET [0x7FFF], 0x8000
-SET PC, boot
-
 ;ok some important variables
 SET [0x5ffa], 0 ;did we print a command?
 set [0x7FFF], 0x8000 ;video pointer
+set [0x7FFE], 0x0008 ;loading bar value
+SET PC, boot
+
 :unknownc    dat " Unknown Command", 0
 :intro       dat " Loading Env v 0.1.2", 0
 :hardware    dat " Hardware probing and initialization will go here", 0
@@ -80,6 +80,8 @@ set [0x7FFF], 0x8000 ;video pointer
              JSR reset
              ife [y], 0xF161
              set PC, about
+             ife [y], 0xF16C
+             JSR loading
              ife [0x5FFA], 0
              JSR unknown
              set Z, 0x0000
@@ -121,5 +123,29 @@ set [0x7FFF], 0x8000 ;video pointer
              SET b, prompt
              JSR printdat
              SET PC, POP
+:loading     SET C, [0x7FFF]
+             set X, 0x003C
+             bor X, 0xf100
+             SET Y, 0x003E
+             bor Y, 0xf100
+             SET [C], X
+             ADD C, 0x001F
+             SET [C], Y
+             SET [0x5FFA], 1
+             JSR loadloop
+             JSR newline
+             SET B, prompt
+             JSR printdat
+             SET PC, pop
+
+:loadloop    ADD [0x7FFF], 1                           ;take the value from [0x7FFE] which should be 0-32 and fill the loading bar with it
+             SET Y, 20
+             bor y, 0xf100
+             set a, [0x7FFF]
+             set [a], y
+             sub [0x7FFE], 1
+             ife [0x7FFE], 0
+             SET PC, pop
+             set pc, loadloop
 
 
