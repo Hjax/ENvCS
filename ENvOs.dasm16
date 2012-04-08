@@ -54,8 +54,8 @@ SET PC, boot
              SET PC, main
 
 :delete      SUB [0x7FFF], 1
-             SUB Z, 1
-             SET [0x7FFF], 0x0000
+             SET Z, [0x7FFF]
+             SET [Z], 0x0000
              SET [0x9000], 0
              SET PC, main
 
@@ -142,6 +142,8 @@ SET PC, boot
              SET b, prompt
              JSR printdat
              SET PC, POP
+:loadkb      IFe [0x9000], 0x0000
+             SET PC, loadkb
 
 :loadadd     ADD [0x7FFF], 1
              SET Y, 20
