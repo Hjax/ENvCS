@@ -1,15 +1,14 @@
 ;ok some important variables
 SET [0x5ffa], 0 ;did we print a command?
 set [0x7FFF], 0x8000 ;video pointer
-set [0x7FFE], 0x0008 ;loading bar value
 SET PC, boot
 
 :unknownc    dat " Unknown Command", 0
 :intro       dat " Loading Env v 0.1.2", 0
 :hardware    dat " Hardware probing and initialization will go here", 0
 :typehelp    dat " Type 'help' for a list of commands", 0
-:helpout     dat " Current commands are: help, reset, about", 0
-:abouttext   dat "  ENvOS, Written by Hjax, v0.1.2, type 'help' to view a list of commands", 0
+:helpout     dat " Current commands are: help, reset, about, load", 0
+:abouttext   dat " ENvOS, Written by Hjax, v0.1.2, type 'help' to view a list of commands", 0
 :prompt      dat ">", 0
 :boot        SET b, intro
              JSR printdat
@@ -24,7 +23,6 @@ SET PC, boot
              JSR printdat
              set I, 0x0020
              JSR append
-             SET [0x5FFA], 1
              set PC, main
 
 :printdat
@@ -81,7 +79,7 @@ SET PC, boot
              ife [y], 0xF161
              set PC, about
              ife [y], 0xF16C
-             JSR loading
+             JSR loaddemo
              ife [0x5FFA], 0
              JSR unknown
              set Z, 0x0000
@@ -132,13 +130,20 @@ SET PC, boot
              ADD C, 0x001F
              SET [C], Y
              SET [0x5FFA], 1
-             JSR loadloop
-             JSR newline
-             SET B, prompt
-             JSR printdat
              SET PC, pop
 
-:loadloop    ADD [0x7FFF], 1                           ;take the value from [0x7FFE] which should be 0-32 and fill the loading bar with it
+:loaddemo    set [0x7FFE], 30 ;loading bar value
+             set [0x7FFD], 30 ;remove from loading bar
+             JSR loading
+             JSR loadadd
+             JSR loaddel
+             SET [0x5FFA], 1
+             JSR newline
+             SET b, prompt
+             JSR printdat
+             SET PC, POP
+
+:loadadd     ADD [0x7FFF], 1
              SET Y, 20
              bor y, 0xf100
              set a, [0x7FFF]
@@ -146,6 +151,15 @@ SET PC, boot
              sub [0x7FFE], 1
              ife [0x7FFE], 0
              SET PC, pop
-             set pc, loadloop
+             set pc, loadadd
 
+
+:loaddel     SET Y, 0x0000                     ;take the value from [0x7FFD] which should be 0-32 and empty the loading bar with it
+             set a, [0x7FFF]
+             set [a], y
+             sub [0x7FFD], 1
+             SUB [0x7FFF], 1
+             ife [0x7FFD], 0
+             SET PC, pop
+             set pc, loaddel
 
