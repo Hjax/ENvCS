@@ -239,7 +239,6 @@ SET PC, boot
 		set pop, [29+z]
 		set pop, [30+z]
 		set pop, [31+z] ; unrolled loop. So sue me :P
-
 		add z, 32
 		ifg z, 0x8231
 			set pc, scroll_end
