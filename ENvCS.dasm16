@@ -1,48 +1,51 @@
 ;ok some important variables
 SET [0x5ffa], 0 ;did we print a command?
-set [0x7FFF], 0x8000 ;video pointer
+SET [0x7FFF], 0x8000 ;video pointer
 SET PC, boot
 
-:unknownc    dat " Unknown Command", 0
-:intro       dat " Loading Env v 0.2.0", 0
-:hardware    dat " Hardware probing and initialization will go here", 0
-:typehelp    dat " Type 'help' for a list of commands", 0
-:helpout     dat " Current commands are: help, reset, about, load", 0
-:abouttext   dat " ENvOS, Written by Hjax, v0.1.2, type 'help' to view a list of commands", 0
-:welcome     dat " Welcome to ENvOS", 0
-:prompt      dat "> ", 0
-:boot        SET b, intro
-             JSR printdat
-             JSR newline
-             SET b, hardware
-             JSR printdat
-             JSR newline
+:unknownc    DAT " Unknown Command", 0
+:intro       DAT " Loading Env v 0.2.0", 0
+:hardware    DAT " Hardware probing and initialization will go here", 0
+:typehelp    DAT " Type 'help' for a list of commands", 0
+:helpout     DAT " Current commands are: help, reset, about, load", 0
+:abouttext   DAT " ENvCS, Written by Hjax, v0.1.2, type 'help' to view a list of commands", 0
+:welcome     DAT " Welcome to ENvCS", 0
+:prompt      DAT "> ", 0
+
+:boot        SET B, intro
+             JSR printnl
+             SET B, hardware
+             JSR printnl
              SET B, welcome
+             JSR printnl
+             SET B, typehelp
+             JSR printnl
+             SET B, prompt
              JSR printdat
-             JSR newline
-             SET b, typehelp
-             JSR printdat
-             JSR newline
-             SET b, prompt
-             JSR printdat
-             set PC, main
+             SET PC, main
 
 :printdat    IFE [0x7FFf], 0x8200
              JSR scroll
-	     set a, [b]
-             ife a, 0
-             set PC, POP
-	     bor a, 0xf100
-	     set c, [0x7FFF]
-             set [c], a
-	     add b, 1
-	     add [0x7FFF], 1
-	     set PC, printdat
+	     SET A, [B]
+             IFE A, 0
+             SET PC, POP
+	     BOR A, 0xf100
+	     SET C, [0x7FFF]
+             SET [C], A
+	     ADD B, 1
+	     ADD [0x7FFF], 1
+	     SET PC, printdat
+
+:printnl     JSR printdat
+             JSR newline
+             SET PC, POP
+
 :append      bor I, 0xf100
-             SET c, [0x7FFF]
-             SET [c], I
+             SET C, [0x7FFF]
+             SET [C], I
              ADD [0x7FFF], 1
-             SET Pc, POP
+             SET PC, POP
+
 :main        ife [0x9000], 0     ; if the user hasn't typed anything in yet
              set PC, main        ;continue waiting
              ife [0x9000], 0xA   ;the user hit enter, proccess the command!
@@ -71,7 +74,6 @@ SET PC, boot
 
 :newline
   	     set i, [0x7FFF]
-             SUB I, 0x8000
  	     mod i, 32
 	     set z, 32
  	     sub z, i
@@ -90,7 +92,7 @@ SET PC, boot
              ife [y], 0xF161
              set PC, about
              ife [y], 0xF16C
-             JSR loaddemo
+             JSR loadbardemo
              ife [0x5FFA], 0
              JSR unknown
              set Z, 0x0000
@@ -132,7 +134,7 @@ SET PC, boot
              SET b, prompt
              JSR printdat
              SET PC, POP
-:loading     SET C, [0x7FFF]
+:loadbarinit SET C, [0x7FFF]
              set X, 0x003C
              bor X, 0xf400
              SET Y, 0x003E
@@ -143,31 +145,31 @@ SET PC, boot
              SET [0x5FFA], 1
              SET PC, pop
 
-:loaddemo    JSR loading
+:loadbardemo JSR loadbarinit
              ADD [0x7FFF], 1
-             JSR loadkb
+             JSR loadbarkb
              SET [0x5FFA], 1
              JSR newline
              SET b, prompt
              JSR printdat
              SET PC, POP
 
-:loadkb      IFe [0x9000], 0x0000
-             SET PC, loadkb
+:loadbarkb   IFe [0x9000], 0x0000
+             SET PC, loadbarkb
              SET Z, [0x9000]
              bor z, 0xf100
              IFE Z, 0xF102
-             JSR loadadd
+             JSR loadbaradd
              IFE Z, 0xF101
-             JSR loaddel
+             JSR loadbardel
              IFE Z, 0xF171
              SET [0x9000], 0
              IFE Z, 0xF171
              SET Pc, pop
              SET [0x9000], 0
-             set PC, loadkb
+             set PC, loadbarkb
 
-:loadadd     SET Y, 0x0020
+:loadbaradd  SET I, 0x0020
              SET Y, [0x7FFF]
              SUB Y, 0x8000
              MOD Y, 32
@@ -177,14 +179,14 @@ SET PC, boot
              SUB [0x7FFF], 1
              IFE Y, 0
              ADD [0x7FFF], 1
-             bor y, 0xf200
+             bor I, 0xf200
              set a, [0x7FFF]
-             set [a], y
+             set [a], I
              ADD [0x7FFF], 1
              SET J, 0
              SET PC, pop
 
-:loaddel     IFE J, 0
+:loadbardel     IFE J, 0
              SUB [0x7FFF], 1
              SET Y, [0x7FFF]
              sub Y, 0x8000
