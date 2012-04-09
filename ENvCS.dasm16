@@ -206,7 +206,7 @@ SET PC, boot
 	set z, 0x8020
 
 	set j, sp			; nifty stack pointer abuse :P
-	set sp, [0x7FFF]
+	set sp, 0x8000
 
 	:scroll_loop
 		set pop, [z]
