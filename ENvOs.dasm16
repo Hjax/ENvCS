@@ -51,6 +51,10 @@ SET PC, boot
              SET PC, delete
              SET I, [0x9000]
              SET [0x9000], 0
+             SET B, [0x7FFF]
+             MOD B, 32
+             IFE B, 0
+             SET PC, main
              IFN I, 0
              jsr append
              SET PC, main
