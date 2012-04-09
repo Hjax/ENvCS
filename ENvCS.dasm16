@@ -177,8 +177,6 @@ SET PC, boot
              ADD [0x7FFF], 1
              IFE Y, 31
              SUB [0x7FFF], 1
-             IFE Y, 0
-             ADD [0x7FFF], 1
              bor I, 0xf200
              set a, [0x7FFF]
              set [a], I
