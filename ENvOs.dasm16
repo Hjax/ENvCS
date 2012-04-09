@@ -1,7 +1,6 @@
 ;ok some important variables
 SET [0x5ffa], 0 ;did we print a command?
 set [0x7FFF], 0x8000 ;video pointer
-
 SET PC, boot
 
 :unknownc    dat " Unknown Command", 0
@@ -10,6 +9,7 @@ SET PC, boot
 :typehelp    dat " Type 'help' for a list of commands", 0
 :helpout     dat " Current commands are: help, reset, about, load", 0
 :abouttext   dat " ENvOS, Written by Hjax, v0.1.2, type 'help' to view a list of commands", 0
+:welcome     dat " Welcome to ENvOS", 0
 :prompt      dat "> ", 0
 :boot        SET b, intro
              JSR printdat
@@ -17,13 +17,14 @@ SET PC, boot
              SET b, hardware
              JSR printdat
              JSR newline
+             SET B, welcome
+             JSR printdat
+             JSR newline
              SET b, typehelp
              JSR printdat
              JSR newline
              SET b, prompt
              JSR printdat
-             set I, 0x0020
-             JSR append
              set PC, main
 
 :printdat
@@ -56,6 +57,10 @@ SET PC, boot
 
 :delete      SUB [0x7FFF], 1
              SET Z, [0x7FFF]
+             SET J, Z
+             MOD J, 32
+             IFE J, 1
+             ADD [0x7FFF], 1
              SET [Z], 0x0000
              SET [0x9000], 0
              SET PC, main
@@ -134,9 +139,7 @@ SET PC, boot
              SET [0x5FFA], 1
              SET PC, pop
 
-:loaddemo    set [0x7FFE], 30 ;loading bar value
-             set [0x7FFD], 30 ;remove from loading bar
-             JSR loading
+:loaddemo    JSR loading
              JSR loadkb
              SET [0x5FFA], 1
              JSR newline
@@ -152,6 +155,8 @@ SET PC, boot
              JSR loadadd
              IFE Z, 0xF101
              JSR loaddel
+             IFE Z, 0xF171
+             SET [0x9000], 0
              IFE Z, 0xF171
              SET Pc, pop
              SET [0x9000], 0
