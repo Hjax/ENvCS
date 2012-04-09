@@ -16,6 +16,14 @@ SET PC, boot
              JSR printnl
              SET B, hardware
              JSR printnl
+             JSR loadbarinit
+             ADD [0x7FFF], 1
+             SET C, 0x001E
+:bootload    JSR loadbaradd
+             SUB C, 0x0001
+             IFN C, 0x0000
+             SET PC, bootload
+             JSR newline
              SET B, welcome
              JSR printnl
              SET B, typehelp
@@ -44,6 +52,15 @@ SET PC, boot
              SET C, [0x7FFF]
              SET [C], I
              ADD [0x7FFF], 1
+             SET PC, POP
+
+:reset       SET J, 0x0000
+             SET [0x7FFC], 0x0000
+             JSR clearscreen
+             SET [0x7FFF], 0x8000
+             SET [0x5FFA], 1
+             SET B, prompt
+             JSR printdat
              SET PC, POP
 
 :main        ife [0x9000], 0     ; if the user hasn't typed anything in yet
@@ -98,21 +115,6 @@ SET PC, boot
              set Z, 0x0000
              SET Y, 0x0000
              SET PC, POP
-
-:reset       SET [0x7FFF], 0x8000
-             JSR resettwo
-             SET [0x7FFF], 0x8000
-             set b, prompt
-             jsr printdat
-             set [0x5FFA], 1
-             SET PC, pop
-:resettwo    SET C, [0x7FFF]
-             SET [C], 0x0000
-             ADD [0x7FFF], 1
-             SET C, [0x7FFF]
-             ife C, 0x81FF
-             SET PC, POP
-             SET PC, resettwo
 
 :unknown     SET B, unknownc
              JSR printdat
@@ -204,7 +206,7 @@ SET PC, boot
 	set z, 0x8020
 
 	set j, sp			; nifty stack pointer abuse :P
-	set sp, 0x8000
+	set sp, [0x7FFF]
 
 	:scroll_loop
 		set pop, [z]
@@ -248,4 +250,50 @@ SET PC, boot
 		set sp, j
 		set [0x1335], 0x81e0
                 SUB [0x7FFF], 0x0020
+		set pc, pop
+
+:clearScreen
+        IFN [0x7FFC], 0x0000
+        BOR J, [0x7FFC]
+	set i, sp
+	set sp, [0x7FFF]
+		:clearScreen_loop
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		set push, J
+		ifg 0x8000, sp
+			set pc, clearScreen_done
+		set pc, clearScreen_loop
+
+		:clearScreen_done
+		set sp, i
 		set pc, pop
