@@ -144,6 +144,7 @@ SET PC, boot
              SET PC, pop
 
 :loaddemo    JSR loading
+             ADD [0x7FFF], 1
              JSR loadkb
              SET [0x5FFA], 1
              JSR newline
@@ -167,16 +168,37 @@ SET PC, boot
              set PC, loadkb
 
 
-:loadadd     ADD [0x7FFF], 1
-             SET Y, 0x0020
+:loadadd     SET Y, 0x0020
+             SET Y, [0x7FFF]
+             SUB Y, 0x8000
+             MOD Y, 32
+             IFE J, 1
+             ADD [0x7FFF], 1
+             IFE Y, 31
+             SUB [0x7FFF], 1
+             IFE Y, 0
+             ADD [0x7FFF], 1
              bor y, 0xf200
              set a, [0x7FFF]
              set [a], y
+             ADD [0x7FFF], 1
+             SET J, 0
              SET PC, pop
 
 
-:loaddel     set a, [0x7FFF]
-             set [a], 0x0000
+:loaddel     IFE J, 0
              SUB [0x7FFF], 1
+             SET Y, [0x7FFF]
+             sub Y, 0x8000
+             mod y, 32
+             IFE Y, 0
+             ADD [0x7FFF], 1
+             IFE y, 31
+             SUB [0x7FFF], 1
+             set a, [0x7FFF]
+             set [a], 0x0000
+             set [0x9000], 0
+             SUB [0x7FFF], 1
+             SET J, 1
              SET PC, pop
 
