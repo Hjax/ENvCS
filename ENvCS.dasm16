@@ -314,8 +314,10 @@ SET PC, boot
              JSR clearScreen
              SET [0x7FFF], 0x8000
              SET [0x5FFA], 1
+             SET [0x5FFB], 1
              JSR draw
-             SET PC, drawloop
+             JSR selectmenu
+             JSR drawloop
              SET PC, POP
 
 :draw        SET [0x7FFF], 0x8000
@@ -357,40 +359,44 @@ SET PC, boot
              ADD [0x5FFB], 1
              IFE Z, 0xF101
              SUB [0x5FFB], 1
-             IFG [0x5FFF], 4
-             SET [0x5FFB], 4
+             IFG [0x5FFB], 5
+             SET [0x5FFB], 5
+             IFG 1, [0x5FFB]
+             SET [0x5FFB], 1
              SET [0x9000], 0x0000
              JSR menumove
+             SET PC, drawloop
 
 :menumove    JSR draw
              JSR selectmenu
              SET PC, POP
 
-:selectmenu  IFE [0x5FFB], 0
+:selectmenu  IFE [0x5FFB], 1
              SET B, auto
-             IFE [0x5FFB], 1
-             SET B, shield
              IFE [0x5FFB], 2
-             SET B, drive
+             SET B, shield
              IFE [0x5FFB], 3
-             SET B, weapon
+             SET B, drive
              IFE [0x5FFB], 4
+             SET B, weapon
+             IFE [0x5FFB], 5
              SET B, ftl
+             IFE [0x5FFB], 1
+             SET C, 0x8000
+             IFE [0x5FFB], 2
+             SET C, 0x8006
+             IFE [0x5FFB], 3
+             SET C, 0x800E
+             IFE [0x5FFB], 4
+             SET C, 0x8015
+             IFE [0x5FFB], 5
+             SET C, 0x801D
 :selectloop  SET A, [B]
              IFE A, 0x0000
              SET PC, POP
              BOR A, 0xF200
-             IFE [0x5FFB], 0
-             SET C, 0x8000
-             IFE [0x5FFB], 1
-             SET C, 0x8006
-             IFE [0x5FFB], 2
-             SET C, 0x800E
-             IFE [0x5FFB], 3
-             SET C, 0x8015
-             IFE [0x5FFB], 4
-             SET C, 0x801F
              SET [C], A
              ADD B, 1
+             ADD C, 1
              SET PC, selectloop
 
