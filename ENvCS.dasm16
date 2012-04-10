@@ -8,7 +8,7 @@ SET PC, boot
 :intro       DAT " Loading Env v 0.3.0", 0
 :hardware    DAT " Hardware probing and initialization will go here", 0
 :typehelp    DAT " Type 'help' for a list of commands", 0
-:helpout     DAT " Current commands are: help, reset, about, load", 0
+:helpout     DAT " Current commands are: help, reset, about, load, gui", 0
 :abouttext   DAT " ENvCS, Written by Hjax, v0.3.0, type 'help' to view a list of commands", 0
 :welcome     DAT " Welcome to ENvCS", 0
 :prompt      DAT "> ", 0
