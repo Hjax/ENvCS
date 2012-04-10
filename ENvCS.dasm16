@@ -365,7 +365,13 @@ SET PC, boot
              SET [0x5FFB], 1
              SET [0x9000], 0x0000
              JSR menumove
+             IFE Z, 0xF171
+             SET Pc, resetterm
              SET PC, drawloop
+
+:resetterm   SET [0x7FFF], 0x8200
+             JSR reset
+             SET PC, POP
 
 :menumove    JSR draw
              JSR selectmenu
