@@ -4,6 +4,7 @@ SET [0x5FFA], 0 ;did we print a command?
 SET [0x5FFD], 0x8000 ;video pointer
 SET [0x5FFB], 0x0000 ;current menu item
 SET [0x5FFC], 0x9000 ;keyboard pointer
+SET [0x5FFF], 0x0000 ;gui memory
 SET PC, boot
 :keypointer  dat 0
 :unknownc    DAT " Unknown Command", 0
@@ -346,7 +347,6 @@ SET PC, boot
              IFE [0x5FFB], 1
              JSR loadbarinit
              ADD [0x5FFD], 1
-             JSR drawloop
              SET PC, POP
 
 :draw        SET [0x5FFD], 0x8000
@@ -383,6 +383,7 @@ SET PC, boot
 :drawloop    JSR kbinput
              IFE Z, 0x0000
              SET PC, drawloop
+             SET [0x5FFF], [0x5FFB]
              BOR Z, 0xF100
              IFE Z, 0xF16C
              ADD [0x5FFB], 1
@@ -409,9 +410,25 @@ SET PC, boot
              JSR reset
              SET PC, POP
 
-:menumove    JSR regui
+:menumove    JSR backup
+             JSR regui
              JSR selectmenu
+             IFE [0x5FFB], 1
+             JSR restore
              SET PC, POP
+
+:backup      IFN [0x5FFF], 1
+             ADD PC, 1
+             SET [0x5FFE], [0x5FFD]
+             SET PC, POP
+
+:restore     SET X, [0x5FFE]
+             SUB X, 0x8041
+:restoretwo  IFG 1, X
+             SET PC, POP
+             JSR loadbaradd
+             SUB X, 1
+             SET PC, restoretwo
 
 :selectmenu  IFE [0x5FFB], 1
              SET B, auto
