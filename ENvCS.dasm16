@@ -1,11 +1,13 @@
-
 ;ok some important variables
 SET [0x5FFA], 0 ;did we print a command?
 SET [0x5FFD], 0x8000 ;video pointer
 SET [0x5FFB], 0x0000 ;current menu item
 SET [0x5FFC], 0x9000 ;keyboard pointer
 SET [0x5FFF], 0x0000 ;gui memory
+SET [0x5FF0], 0x0000 ; first toggle
 SET PC, boot
+:loadbarend
+:space       DAT " ", 0
 :keypointer  dat 0
 :unknownc    DAT " Unknown Command", 0
 :intro       DAT " Loading Env v 0.3.0", 0
@@ -54,15 +56,16 @@ SET PC, boot
              JSR printdat
              SET PC, main
 
-:printdat    IFE [0x5FFD], 0x8200
-             JSR scroll
+:printdat    IFG [0x5FFD], 0x817F
+             JSR scrollstart
 	     SET A, [B]
              IFE A, 0
              SET PC, POP
-	     BOR A, 0xf100
+	     BOR A, 0xf000
 	     SET C, [0x5FFD]
-             SET [C], A
+             ADD C, 1
 	     ADD B, 1
+             SET [C], A
 	     ADD [0x5FFD], 1
 	     SET PC, printdat
 
@@ -70,7 +73,7 @@ SET PC, boot
              JSR newline
              SET PC, POP
 
-:append      BOR I, 0xf100
+:append      BOR I, 0xf000
              SET C, [0x5FFD]
              SET [C], I
              ADD [0x5FFD], 1
@@ -92,7 +95,6 @@ SET PC, boot
              SET PC, command
              IFE Z, 0x8   ;the user hit the delete key
              SET PC, delete
-             BOR Z, 0xF100
              SET I, Z
              SET Z, 0
              SET B, [0x5FFD]
@@ -107,7 +109,9 @@ SET PC, boot
              SET Z, [0x5FFD]
              SET J, Z
              MOD J, 32
-             IFE J, 1
+             IFG 2, J
+             ADD Z, 1
+             IFG 2, J
              ADD [0x5FFD], 1
              SET [Z], 0x0000
              SET [0x9000], 0
@@ -126,15 +130,15 @@ SET PC, boot
              JSR newline
              SET Y, [0x5FFD]
              SUB Y, 0x001E
-             IFE [Y], 0xF168
+             IFE [Y], 0xF068
              JSR help
-             IFE [y], 0xF172
+             IFE [y], 0xF072
              JSR reset
-             IFE [y], 0xF161
+             IFE [y], 0xF061
              JSR about
-             IFE [y], 0xF16C
+             IFE [y], 0xF06C
              JSR loadbardemo
-             IFE [y], 0xF167
+             IFE [y], 0xF067
              JSR gui
              IFE [0x5FFA], 0
              JSR unknown
@@ -224,6 +228,28 @@ SET PC, boot
              SUB [0x5FFD], 1
              SET J, 1
              SET PC, POP
+
+:wipe        SET Z, 0x8160
+:wipetwo     SET [Z], 0x0000
+             IFG Z, 0x8180
+             SET PC, POP
+             ADD Z, 1
+             SET PC, wipetwo
+
+:scrollstart SET A, 0x8000
+:slowscroll  IFG A, 0x8180
+             SET PC, donescroll
+             SET C, A
+             SUB C, 0x0020
+             SET [C], [A]
+             IFE 0x8160, A
+             SET [A], 0x0000
+             ADD A, 1
+             SET PC, slowscroll
+:donescroll  SET [0x5FFD], 0x8160
+             JSR wipe
+             SET PC, POP
+
 :scroll
  	     SET x, 0x8000
              SET C, 0x8020
@@ -232,39 +258,8 @@ SET PC, boot
 
 :scroll_loop
 	     SET POP, [c]
-	     SET POP, [1+C]
-	     SET POP, [2+C]
-	     SET POP, [3+C]
-	     SET POP, [4+C]
-	     SET POP, [5+C]
-	     SET POP, [6+C]
-	     SET POP, [7+C]
-	     SET POP, [8+C]
-	     SET POP, [9+C]
-	     SET POP, [10+C]
-	     SET POP, [11+C]
-	     SET POP, [12+C]
-	     SET POP, [13+C]
-	     SET POP, [14+C]
-	     SET POP, [15+C]
-	     SET POP, [16+C]
-	     SET POP, [17+C]
-	     SET POP, [18+C]
-	     SET POP, [19+C]
-	     SET POP, [20+C]
-	     SET POP, [21+C]
-	     SET POP, [22+C]
-	     SET POP, [23+C]
-	     SET POP, [24+C]
-	     SET POP, [25+C]
-	     SET POP, [26+C]
-	     SET POP, [27+C]
-	     SET POP, [28+C]
-	     SET POP, [29+C]
-	     SET POP, [30+C]
-	     SET POP, [31+C] ; unrolled loop. So sue me :P
-	     ADD C, 32
-	     IFG C, 0x8231
+	     ADD C, 1
+	     IFG C, 0x8211
 	     SET pc, scroll_end
 	     SET pc, scroll_loop
 
@@ -275,43 +270,10 @@ SET PC, boot
 	     SET pc, POP
 
 :clearScreen
-             IFN [0x7FFC], 0x0000
-             BOR J, [0x7FFC]
              SET i, sp
              SET sp, [0x5FFD]
 :clearScreen_loop
              SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
-	     SET PUSH, J
 	     IFG 0x8000, sp
 	     SET pc, clearScreen_done
 	     SET pc, clearScreen_loop
@@ -320,7 +282,7 @@ SET PC, boot
              SET sp, i
 	     SET pc, POP
 
-:gui         SET J, 0x0000
+:gui         SET J, space
              SET [0x7FFC], 0xF600
              SET [0x5FFD], 0x8200
              JSR clearScreen
@@ -459,3 +421,13 @@ SET PC, boot
              ADD C, 1
              SET PC, selectloop
 
+:toggleon    SET C, [0x5FFD]
+             SET A, [0x5FFD]
+             ADD C, 4
+             IFE A,  [C]
+             ;SET PC, toggleontwo
+             SET B, 0x0020
+             BOR B, 0xF100
+             SET [A], B
+             ADD [0x5FFD], 1
+             SET PC, toggleon
